@@ -10,6 +10,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	//"text/template"
 
 	"github.com/northbright/pathhelper"
 )
@@ -69,7 +70,7 @@ func (t toc) Less(i, j int) bool {
 	return t[i].value > t[j].value
 }
 
-func (t toc) updateTocText(tocText string) (newTocText string) {
+func updateTocText(t toc, tocText string) (newTocText string) {
 	newTocText = tocText
 
 	for _, v := range t {
@@ -81,7 +82,7 @@ func (t toc) updateTocText(tocText string) (newTocText string) {
 	return newTocText
 }
 
-func (t toc) downloadPages(outDir string) (err error) {
+func downloadPages(t toc, outDir string) (err error) {
 	tocText := ""
 	newTocText := ""
 	for _, v := range t {
@@ -96,7 +97,7 @@ func (t toc) downloadPages(outDir string) (err error) {
 				fmt.Printf("getTocText(%v) error: %v\n", link, err)
 				return err
 			}
-			newTocText = t.updateTocText(tocText)
+			newTocText = updateTocText(t, tocText)
 		}
 
 		s = strings.Replace(s, tocText, newTocText, -1)
@@ -219,8 +220,24 @@ func main() {
 	}
 	fmt.Printf("getRiaJS() OK. riaJS: %v\n", riaJS)
 
-	if err = t.downloadPages(dirs["out"]); err != nil {
-		fmt.Printf("t.downloadPages() error: %v\n", err)
+	if err = downloadPages(t, dirs["out"]); err != nil {
+		fmt.Printf("downloadPages() error: %v\n", err)
 		return
 	}
 }
+
+var pageTemplate string = `
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>{{.Title}}</title>
+<link rel="stylesheet" type="text/css" href="https://redislabs.com/wp-content/themes/twentyeleven/ria.css" />
+<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+</head>
+<body>
+{{.PageContent}}
+{{.Js}}
+</body>
+</html>
+`

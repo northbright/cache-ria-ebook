@@ -5,12 +5,13 @@ import (
 	"fmt"
 	"io/ioutil"
 	"net/http"
+	"os"
 	"path"
 	"regexp"
 	"sort"
 	"strconv"
 	"strings"
-	//"text/template"
+	"text/template"
 
 	"github.com/northbright/pathhelper"
 )
@@ -74,7 +75,7 @@ func updateTocText(t toc, tocText string) (newTocText string) {
 	newTocText = tocText
 
 	for _, v := range t {
-		newLink := fmt.Sprintf("./03%d.html", v.value)
+		newLink := fmt.Sprintf("./%03d.html", v.value)
 		//fmt.Printf("old: %v\nnew: %v\n", v.link, newLink)
 		newTocText = strings.Replace(newTocText, v.link, newLink, -1)
 	}
@@ -82,7 +83,7 @@ func updateTocText(t toc, tocText string) (newTocText string) {
 	return newTocText
 }
 
-func downloadPages(t toc, outDir string) (err error) {
+func downloadPages(t toc, pageTmplStr, riaJs string, outDir string) (err error) {
 	tocText := ""
 	newTocText := ""
 	for _, v := range t {
@@ -101,9 +102,31 @@ func downloadPages(t toc, outDir string) (err error) {
 		}
 
 		s = strings.Replace(s, tocText, newTocText, -1)
-		f := path.Join(outDir, fmt.Sprintf("%03d.html", v.value))
-		fmt.Printf("link: %v\nf: %v, value=%d, len(s)=%v\n", v.link, f, v.value, len(s))
-		if err = ioutil.WriteFile(f, []byte(s), 0755); err != nil {
+		p := path.Join(outDir, fmt.Sprintf("%03d.html", v.value))
+		fmt.Printf("link: %v\nf: %v, value=%d, len(s)=%v\n", v.link, p, v.value, len(s))
+
+		f, err := os.OpenFile(p, os.O_RDWR|os.O_CREATE, 0755)
+		if err != nil {
+			return err
+		}
+		defer f.Close()
+
+		tmpl, err := template.New("page").Parse(pageTmplStr)
+		if err != nil {
+			return err
+		}
+
+		data := struct {
+			Title       string
+			PageContent string
+			JS          string
+		}{
+			v.title,
+			s,
+			riaJs,
+		}
+
+		if err = tmpl.Execute(f, data); err != nil {
 			return err
 		}
 	}
@@ -220,13 +243,13 @@ func main() {
 	}
 	fmt.Printf("getRiaJS() OK. riaJS: %v\n", riaJS)
 
-	if err = downloadPages(t, dirs["out"]); err != nil {
+	if err = downloadPages(t, pageTemplateStr, riaJS, dirs["out"]); err != nil {
 		fmt.Printf("downloadPages() error: %v\n", err)
 		return
 	}
 }
 
-var pageTemplate string = `
+var pageTemplateStr string = `
 <!DOCTYPE html>
 <html>
 <head>
@@ -237,7 +260,7 @@ var pageTemplate string = `
 </head>
 <body>
 {{.PageContent}}
-{{.Js}}
+{{.JS}}
 </body>
 </html>
 `

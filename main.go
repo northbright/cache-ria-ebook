@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"path"
+	"path/filepath"
 	"regexp"
 	"sort"
 	"strconv"
@@ -17,19 +18,23 @@ import (
 )
 
 const (
-	redisLabsHomeURL    string = "https://redislabs.com"
-	ebookHomeURL        string = "https://redislabs.com/ebook/redis-in-action"
-	tocBeginTag         string = `<div id="sidebar-toc">`
-	tocEndTag           string = `<div id="main-content-holder"`
-	tocPattern          string = `<a value="(?P<value>\d*?)" href="(?P<link>.*?)">(<span style="display: none">\d*?</span>)?(?P<title>.*?)</a>`
-	pageContentBeginTag string = `<div id="page-content-main">`
-	pageContentEndTag   string = `<!-- id="page-content-main" -->`
-	riaJsURL            string = "https://redislabs.com/ebook/redis-in-action/foreword"
-	riaJsBeginTag       string = `<script type="text/javascript">
+	redisLabsHomeURL       string = "https://redislabs.com"
+	ebookHomeURL           string = "https://redislabs.com/ebook/redis-in-action"
+	tocBeginTag            string = `<div id="sidebar-toc">`
+	tocEndTag              string = `<div id="main-content-holder"`
+	tocPattern             string = `<a value="(?P<value>\d*?)" href="(?P<link>.*?)">(<span style="display: none">\d*?</span>)?(?P<title>.*?)</a>`
+	pageContentBeginTag    string = `<div id="page-content-main">`
+	pageContentEndTag      string = `<!-- id="page-content-main" -->`
+	academyContentBeginTag string = `<div id="academy-content">`
+	academyContentEndTag   string = `<!-- id="academy-content" -->`
+	riaJsURL               string = "https://redislabs.com/ebook/redis-in-action/foreword"
+	riaJsBeginTag          string = `<script type="text/javascript">
 //Navigation`
 	riaJsEndTag string = `</div>
 
 <div id="ubiquitous-footer">`
+	imgSrcPattern string = `<img src="(?P<img_src>.*?)">`
+	retryCount    int    = 3
 )
 
 var (
@@ -45,7 +50,20 @@ var (
 		"css": "./ria-ebook/css",
 		"img": "./ria-ebook/img",
 	}
+
+	cssUrls []string = []string{
+		"https://redislabs.com/wp-content/themes/twentyeleven/style.css",
+		"https://redislabs.com/wp-content/themes/twentyeleven/redislabs.css",
+		"https://redislabs.com/wp-content/themes/twentyeleven/ria.css",
+		"https://redislabs.com/wp-content/themes/twentyeleven/css/fancy.css",
+		"https://redislabs.com/wp-content/themes/twentyeleven/js/highlight/default.css",
+	}
 )
+
+type cachedImage struct {
+	imgSrc   string
+	localSrc string
+}
 
 type tocEntry struct {
 	title string
@@ -68,40 +86,126 @@ func (t toc) Swap(i, j int) {
 
 // Less() is part of sort.Interface.
 func (t toc) Less(i, j int) bool {
-	return t[i].value > t[j].value
+	return t[i].value < t[j].value
 }
 
-func updateTocText(t toc, tocText string) (newTocText string) {
-	newTocText = tocText
+func (t toc) toHtmlStr() (htmlStr string) {
+	sort.Sort(t)
+	htmlStr = `<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8" />
+<title>Redis in Action: Table Of Content</title>
+</head>
+<body>
+`
 
+	htmlStr += "<div style=\"margin-left:auto; margin-right:auto; margin-top:80px; margin-bottom:40px;\">\n<ul>\n"
+	currentLevel := 1
 	for _, v := range t {
-		newLink := fmt.Sprintf("./%03d.html", v.value)
-		//fmt.Printf("old: %v\nnew: %v\n", v.link, newLink)
-		newTocText = strings.Replace(newTocText, v.link, newLink, -1)
+		if v.level > currentLevel {
+			htmlStr += "<ul>\n"
+			currentLevel = v.level
+		} else if v.level < currentLevel {
+			for i := v.level; i < currentLevel; i++ {
+				htmlStr += "</ul>\n"
+			}
+			currentLevel = v.level
+		}
+
+		htmlStr += fmt.Sprintf("<li><a href=\"./%03d.html\">%s</a></li>\n", v.value, v.title)
+	}
+	htmlStr += "</ul>\n</div>\n</body>\n</html>"
+	return htmlStr
+}
+
+func (t toc) writeToHtml(f string) (err error) {
+	s := t.toHtmlStr()
+	return ioutil.WriteFile(f, []byte(s), 0755)
+}
+
+func downloadFile(fileUrl string, filePath string) (err error) {
+	res, err := http.Get(fileUrl)
+	if err != nil {
+		return err
+	}
+	defer res.Body.Close()
+
+	data, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return err
 	}
 
-	return newTocText
+	return ioutil.WriteFile(filePath, data, 0755)
+
+}
+
+func cacheCssFiles(cssUrls []string, cssDir string) (err error) {
+	for _, v := range cssUrls {
+		src := v
+		localFile := path.Join(cssDir, filepath.Base(src))
+		if err = downloadFile(src, localFile); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+func cacheImages(academyContent, imgDir string) (cachedImgs []cachedImage, err error) {
+	cachedImgs = []cachedImage{}
+	re := regexp.MustCompile(imgSrcPattern)
+	matches := re.FindAllStringSubmatch(academyContent, -1)
+	for _, m := range matches {
+		imgSrc := m[1]
+		realImgSrc := imgSrc
+		// Check if imgSrc starts with "/wp-content".
+		// e.g.
+		// "/wp-content/images/academy/redis-in-action/RIA_fig4-02.svg"
+		// update the src to:
+		// "https://redislabs.com/wp-content/images/academy/redis-in-action/RIA_fig4-02.svg"
+		if strings.HasPrefix(imgSrc, "/wp-content") {
+			realImgSrc = fmt.Sprintf("%s%s", redisLabsHomeURL, imgSrc)
+		}
+		imgFile := path.Join(imgDir, filepath.Base(imgSrc))
+		fmt.Printf("imgSrc: %v, imgFile: %v\n", imgSrc, imgFile)
+		if err = downloadFile(realImgSrc, imgFile); err != nil {
+			return cachedImgs, err
+		}
+
+		localSrc := path.Join("./img/", filepath.Base(imgSrc))
+		cachedImgs = append(cachedImgs, cachedImage{imgSrc, localSrc})
+	}
+	return cachedImgs, nil
 }
 
 func downloadPages(t toc, pageTmplStr, riaJs string, outDir string) (err error) {
-	tocText := ""
-	newTocText := ""
 	for _, v := range t {
 		link := redisLabsHomeURL + v.link
-		s, err := getPageContent(link)
+		s := ""
+		if s, err = getAcademyContent(link); err != nil {
+			for i := 1; i <= retryCount; i++ {
+				fmt.Printf("Retry #%d: %v\n", i, v.link)
+				if s, err = getAcademyContent(link); err == nil {
+					break
+				}
+				if i == retryCount {
+					return errors.New("Failed to get academy content.")
+				}
+			}
+		}
+
+		// Cache Images
+		cachedImgs, err := cacheImages(s, path.Join(outDir, "img"))
 		if err != nil {
 			return err
 		}
 
-		if newTocText == "" {
-			if tocText, err = getTocText(link); err != nil {
-				fmt.Printf("getTocText(%v) error: %v\n", link, err)
-				return err
-			}
-			newTocText = updateTocText(t, tocText)
+		fmt.Printf("cachedImgs: %v\n", cachedImgs)
+
+		for _, v := range cachedImgs {
+			s = strings.Replace(s, v.imgSrc, v.localSrc, -1)
 		}
 
-		s = strings.Replace(s, tocText, newTocText, -1)
 		p := path.Join(outDir, fmt.Sprintf("%03d.html", v.value))
 		fmt.Printf("link: %v\nf: %v, value=%d, len(s)=%v\n", v.link, p, v.value, len(s))
 
@@ -116,14 +220,30 @@ func downloadPages(t toc, pageTmplStr, riaJs string, outDir string) (err error) 
 			return err
 		}
 
+		prev := ""
+		if v.value-1 >= 0 {
+			prev = fmt.Sprintf("<a href=\"./%03d.html\">Previous</a>", v.value-1)
+		} else {
+			prev = fmt.Sprintf("<div style=\"color:#808080;\">Previous</div>")
+		}
+
+		next := ""
+		if v.value+1 <= 189 {
+			next = fmt.Sprintf("<a href=\"./%03d.html\">Next</a>", v.value+1)
+		} else {
+			next = fmt.Sprintf("<div style=\"color:#808080;\">Next</div>")
+		}
+
 		data := struct {
 			Title       string
 			PageContent string
-			JS          string
+			Prev        string
+			Next        string
 		}{
 			v.title,
 			s,
-			riaJs,
+			prev,
+			next,
 		}
 
 		if err = tmpl.Execute(f, data); err != nil {
@@ -161,8 +281,8 @@ func getRiaJS() (jsText string, err error) {
 	return getContent(riaJsURL, riaJsBeginTag, riaJsEndTag)
 }
 
-func getPageContent(pageUrl string) (pageContent string, err error) {
-	return getContent(pageUrl, pageContentBeginTag, pageContentEndTag)
+func getAcademyContent(pageUrl string) (academyContent string, err error) {
+	return getContent(pageUrl, academyContentBeginTag, academyContentEndTag)
 }
 
 func getTocText(pageUrl string) (tocText string, err error) {
@@ -222,6 +342,10 @@ func main() {
 		return
 	}
 
+	if err := cacheCssFiles(cssUrls, dirs["css"]); err != nil {
+		fmt.Printf("cacheCssFiles() error: %v\n", err)
+	}
+
 	t, err := getToc(ebookHomeURL)
 	if err != nil {
 		fmt.Printf("getToc() error: %v\n", err)
@@ -229,12 +353,11 @@ func main() {
 	}
 	fmt.Printf("getToc() OK. TOC = %v\n", t)
 
-	pageContent, err := getPageContent(ebookHomeURL)
-	if err != nil {
-		fmt.Printf("getPageContent(%v) error: %v\n", ebookHomeURL, err)
+	tocFile := path.Join(dirs["out"], "_toc.html")
+	if err = t.writeToHtml(tocFile); err != nil {
+		fmt.Printf("writeToHtml(%v): error: %v\n", tocFile, err)
 		return
 	}
-	fmt.Printf("getPageCotent() OK. Page content: %v\n", pageContent)
 
 	riaJS, err := getRiaJS()
 	if err != nil {
@@ -255,12 +378,32 @@ var pageTemplateStr string = `
 <head>
 <meta charset="UTF-8" />
 <title>{{.Title}}</title>
-<link rel="stylesheet" type="text/css" href="https://redislabs.com/wp-content/themes/twentyeleven/ria.css" />
-<script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+<link rel="stylesheet" type="text/css" href="./css/style.css" />
+<link rel="stylesheet" type="text/css" href="./css/redislabs.css" />
+<link rel="stylesheet" type="text/css" href="./css/ria.css" />
+<link rel="stylesheet" type="text/css" href="./css/fancy.css" />
+<link rel="stylesheet" type="text/css" href="./css/default.css" />
 </head>
 <body>
+<div style="margin-top: 120px">
+
+<div id="page-content-main">
 {{.PageContent}}
-{{.JS}}
+</div><!-- id="page-content-main" -->
+
+<div style="margin-left: auto; margin-right: auto; margin-top:20px; width:960px; height:100px; font-size:32px">
+  <div style="width:33%; float:left; text-align: left">
+    {{.Prev}}
+  </div>
+  <div style="width:33%; float:left; text-align: center">
+    <a href="./_toc.html">Table of Content</a>
+  </div>
+  <div style="width:33%; float: right; text-align: right">
+    {{.Next}}
+  </div>
+</div>
+
+</div>
 </body>
 </html>
 `

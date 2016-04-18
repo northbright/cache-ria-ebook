@@ -104,6 +104,7 @@ func (t toc) toHtmlStr() (htmlStr string) {
 <title>Redis in Action: Table Of Content</title>
 </head>
 <body>
+<h1 style="margin-top:20px; margin-left:30px; font-size:48px;">Redis in Action</h1>
 `
 
 	htmlStr += "<div style=\"margin-left:auto; margin-right:auto; margin-top:80px; margin-bottom:40px;\">\n<ul>\n"

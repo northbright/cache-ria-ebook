@@ -177,7 +177,7 @@ func cacheImages(academyContent, imgDir string) (cachedImgs []cachedImage, err e
 	return cachedImgs, nil
 }
 
-func downloadPages(t toc, pageTmplStr, riaJs string, outDir string) (err error) {
+func downloadPages(t toc, pageTmplStr, outDir string) (err error) {
 	for _, v := range t {
 		link := redisLabsHomeURL + v.link
 		s := ""
@@ -358,14 +358,7 @@ func main() {
 		return
 	}
 
-	riaJS, err := getRiaJS()
-	if err != nil {
-		fmt.Printf("getRiaJS() error: %v\n", err)
-		return
-	}
-	fmt.Printf("getRiaJS() OK. riaJS: %v\n", riaJS)
-
-	if err = downloadPages(t, pageTemplateStr, riaJS, dirs["out"]); err != nil {
+	if err = downloadPages(t, pageTemplateStr, dirs["out"]); err != nil {
 		fmt.Printf("downloadPages() error: %v\n", err)
 		return
 	}

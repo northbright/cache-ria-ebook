@@ -354,6 +354,7 @@ func getToc(pageUrl string) (t toc, err error) {
 }
 
 func main() {
+	fmt.Printf("=========================================\nStarting caching Redis in Action ebook.\n\n")
 	dirs, _ := pathhelper.GetAbsPaths(dirs)
 
 	if err := pathhelper.CreateDirs(dirs, 0755); err != nil {
@@ -382,6 +383,8 @@ func main() {
 		fmt.Printf("downloadPages() error: %v\n", err)
 		return
 	}
+
+	fmt.Printf("\n\n=========================================\nRedis in Action ebook has been cached in %v successfully.\n", dirs["out"])
 }
 
 var pageTemplateStr string = `

@@ -1,6 +1,8 @@
 # cache-ria-ebook
 cache-ria-ebook is a program written in [Go](http://golang.org) that caches the [Redis in Action ebook](https://redislabs.com/ebook/redis-in-action) hosted on [redislabs.com](https://redislabs.com/).
 
+[![Build Status](https://travis-ci.org/northbright/cache-ria-ebook.svg?branch=master)](https://travis-ci.org/northbright/cache-ria-ebook)
+
 #### Purpose
 Redis fans from China will have problems to visit [Redis in Action ebook](https://redislabs.com/ebook/redis-in-action)  because accessing Google services is blocked in China.  
 This ebook uses <https://apis.google.com/js/plusone.js> and that will make loading pages very slow in China:
@@ -27,6 +29,8 @@ It'll create a `ria-ebook` folder to hold cached pages(html files) and images.
 # cache-ria-ebook
 
 cache-ria-ebook 是一个[Go](http://golang.org) 语言写的程序，用于缓存[redislabs.com](https://redislabs.com/)上的[Redis in Action ebook](https://redislabs.com/ebook/redis-in-action) 。
+
+[![Build Status](https://travis-ci.org/northbright/cache-ria-ebook.svg?branch=master)](https://travis-ci.org/northbright/cache-ria-ebook)
 
 #### 目的
 中国Redis的爱好者在访问[Redis in Action ebook](https://redislabs.com/ebook/redis-in-action) 会遇到麻烦，因为Google的服务在中国是不可用的。  

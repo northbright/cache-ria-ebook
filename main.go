@@ -90,7 +90,6 @@ func (t toc) Less(i, j int) bool {
 }
 
 func (t toc) toHtmlStr() (htmlStr string) {
-	sort.Sort(t)
 	htmlStr = `<!DOCTYPE html>
 <html>
 <head>

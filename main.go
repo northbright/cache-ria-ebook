@@ -38,12 +38,14 @@ const (
 )
 
 var (
+	// TOC level patterns. Default level is 1(top level).
 	levelPatterns map[int]string = map[int]string{
 		2: `^(Chapter\s\d{1,2}:\s)|((A|B)\.\d{1,2})\s`,
 		3: `^(\d{1,2}\.\d{1,2}\s)|((A|B)\.\d{1,2}\.\d{1,2})\s`,
 		4: `^\d{1,2}\.\d{1,2}\.\d{1,2}\s`,
 	}
 
+	// Predefined Dirs.
 	dirs map[string]string = map[string]string{
 		"out": "./ria-ebook",
 		"js":  "./ria-ebook/js",
@@ -51,6 +53,7 @@ var (
 		"img": "./ria-ebook/img",
 	}
 
+	// CSS URLs need to be downloaded.
 	cssUrls []string = []string{
 		"https://redislabs.com/wp-content/themes/twentyeleven/style.css",
 		"https://redislabs.com/wp-content/themes/twentyeleven/redislabs.css",
@@ -60,11 +63,13 @@ var (
 	}
 )
 
+// Cached image info.
 type cachedImage struct {
 	imgSrc   string
 	localSrc string
 }
 
+// TOC entry info.
 type tocEntry struct {
 	title string
 	link  string
@@ -72,6 +77,7 @@ type tocEntry struct {
 	level int
 }
 
+// TOC
 type toc []tocEntry
 
 // Len() is part of sort.Interface.
@@ -89,6 +95,7 @@ func (t toc) Less(i, j int) bool {
 	return t[i].value < t[j].value
 }
 
+// toHtmlStr() outputs the TOC to HTML string.
 func (t toc) toHtmlStr() (htmlStr string) {
 	htmlStr = `<!DOCTYPE html>
 <html>
@@ -118,11 +125,13 @@ func (t toc) toHtmlStr() (htmlStr string) {
 	return htmlStr
 }
 
+// writeToHtml() generates the HTML file contains the TOC of Redis in Action.
 func (t toc) writeToHtml(f string) (err error) {
 	s := t.toHtmlStr()
 	return ioutil.WriteFile(f, []byte(s), 0755)
 }
 
+// downloadFile() downloads the file by given url and file path.
 func downloadFile(fileUrl string, filePath string) (err error) {
 	res, err := http.Get(fileUrl)
 	if err != nil {
@@ -139,6 +148,7 @@ func downloadFile(fileUrl string, filePath string) (err error) {
 
 }
 
+// cacheCssFiles() downlaods the CSS style files by given CSS file URLs.
 func cacheCssFiles(cssUrls []string, cssDir string) (err error) {
 	for _, v := range cssUrls {
 		src := v
@@ -150,13 +160,16 @@ func cacheCssFiles(cssUrls []string, cssDir string) (err error) {
 	return nil
 }
 
+// cacheImages() downloads the images in page content.
 func cacheImages(academyContent, imgDir string) (cachedImgs []cachedImage, err error) {
 	cachedImgs = []cachedImage{}
 	re := regexp.MustCompile(imgSrcPattern)
 	matches := re.FindAllStringSubmatch(academyContent, -1)
+
 	for _, m := range matches {
 		imgSrc := m[1]
 		realImgSrc := imgSrc
+
 		// Check if imgSrc starts with "/wp-content".
 		// e.g.
 		// "/wp-content/images/academy/redis-in-action/RIA_fig4-02.svg"
@@ -165,6 +178,7 @@ func cacheImages(academyContent, imgDir string) (cachedImgs []cachedImage, err e
 		if strings.HasPrefix(imgSrc, "/wp-content") {
 			realImgSrc = fmt.Sprintf("%s%s", redisLabsHomeURL, imgSrc)
 		}
+
 		imgFile := path.Join(imgDir, filepath.Base(imgSrc))
 		fmt.Printf("imgSrc: %v, imgFile: %v\n", imgSrc, imgFile)
 		if err = downloadFile(realImgSrc, imgFile); err != nil {
@@ -177,6 +191,7 @@ func cacheImages(academyContent, imgDir string) (cachedImgs []cachedImage, err e
 	return cachedImgs, nil
 }
 
+// downloadPages() download all pages according to the TOC of Redis in Action.
 func downloadPages(t toc, pageTmplStr, outDir string) (err error) {
 	for _, v := range t {
 		link := redisLabsHomeURL + v.link
@@ -252,6 +267,7 @@ func downloadPages(t toc, pageTmplStr, outDir string) (err error) {
 	return nil
 }
 
+// getContent() uses regular expression to get the content in HTML body by given content begin and end tags.
 func getContent(contentUrl, beginTag, endTag string) (content string, err error) {
 	res, err := http.Get(contentUrl)
 	if err != nil {
@@ -276,22 +292,25 @@ func getContent(contentUrl, beginTag, endTag string) (content string, err error)
 	return s, nil
 }
 
+// getRiaJS() gets the Javascript object used in Redis in Action ebook.
 func getRiaJS() (jsText string, err error) {
 	return getContent(riaJsURL, riaJsBeginTag, riaJsEndTag)
 }
 
+// getAcademyContent() gets the academy content(each page) of Redis in Action ebook.
 func getAcademyContent(pageUrl string) (academyContent string, err error) {
 	return getContent(pageUrl, academyContentBeginTag, academyContentEndTag)
 }
 
+// getTocText() gets the TOC text of Redis in Action ebook.
 func getTocText(pageUrl string) (tocText string, err error) {
 	return getContent(pageUrl, tocBeginTag, tocEndTag)
 }
 
+// parseTocText() parses the TOC text and return TOC struct of Redis in Action.
 func parseTocText(tocText string) (t toc, err error) {
 	re := regexp.MustCompile(tocPattern)
 	matches := re.FindAllStringSubmatch(tocText, -1)
-	//fmt.Printf("matches = %v\n", matches)
 
 	t = toc{}
 	for _, m := range matches {
@@ -313,7 +332,7 @@ func parseTocText(tocText string) (t toc, err error) {
 				break
 			}
 		}
-		//fmt.Printf("level %d: %v\n", level, title)
+
 		entry := tocEntry{title, link, int(value), level}
 		t = append(t, entry)
 	}
@@ -322,9 +341,9 @@ func parseTocText(tocText string) (t toc, err error) {
 	sort.Sort(t)
 
 	return t, nil
-
 }
 
+// getToc gets the TOC of Redis in Action.
 func getToc(pageUrl string) (t toc, err error) {
 	s, err := getTocText(pageUrl)
 	if err != nil {

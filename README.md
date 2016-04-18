@@ -8,7 +8,7 @@ This ebook uses <https://apis.google.com/js/plusone.js> and that will make loadi
 ![Can't access apis.google.com](images/google-services-block.png)
 
 #### Usage
-  * Get the latest release
+  * Get the [latest release](https://github.com/northbright/cache-ria-ebook/releases/latest).
   * Run  `./cache-ria-ebook`
 
 It'll create a `ria-ebook` folder to hold cached pages(html files) and images.
@@ -36,7 +36,7 @@ cache-ria-ebook 是一个[Go](http://golang.org) 语言写的程序，用于缓�
 ![Can't access apis.google.com](images/google-services-block.png)
 
 #### 使用方法
-  * 获取最新的编译好的二进制版本
+  * 获取[最新的编译好的二进制版本](https://github.com/northbright/cache-ria-ebook/releases/latest)。
   * 运行  `./cache-ria-ebook`
 
 运行完毕后，将会创建一个`ria-ebook`的文件夹，用于存放缓存后的电子书（HTML文件）和图片。

@@ -319,7 +319,7 @@ func parseTocText(tocText string) (t toc, err error) {
 		t = append(t, entry)
 	}
 
-	// Sort by value(desc)
+	// Sort by value
 	sort.Sort(t)
 
 	return t, nil

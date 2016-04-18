@@ -24,7 +24,7 @@ It'll create a `ria-ebook` folder to hold cached pages(html files) and images.
 
 --------------------------------
 
-# Cache-ria-ebook
+# cache-ria-ebook
 
 cache-ria-ebook 是一个[Go](http://golang.org) 语言写的程序，用于缓存[redislabs.com](https://redislabs.com/)上的[Redis in Action ebook](https://redislabs.com/ebook/redis-in-action) 。
 

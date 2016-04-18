@@ -18,7 +18,7 @@ It'll create a `ria-ebook` folder to hold cached pages(html files) and images.
 * Thanks [Dr. Josiah Carlson(Author of Redis in Action)](https://github.com/josiahcarlson) that wrote such a great book.
 
 #### Paperback of Redis in Action
-* <div class="purchase"><a target="_blank" href="http://www.manning.com/carlson/"><img src="/wp-content/images/buy-ebook.png" alt="Buy the paperback"></a></div>
+* <div class="purchase"><a target="_blank" href="http://www.manning.com/carlson/"><img src="./images/buy-ebook.png" alt="Buy the paperback"></a></div>
 
 * [Chinese Translation of Redis in Action(translator:黄健宏)](http://redisinaction.com/)
 
@@ -46,7 +46,6 @@ cache-ria-ebook 是一个[Go](http://golang.org) 语言写的程序，用于缓�
 * 感谢 [Josiah Carlson博士(Redis in Action的作者)](https://github.com/josiahcarlson)写了这本这么棒的书。
 
 #### Redis in Action的纸质书
-* <div class="purchase"><a target="_blank" href="http://www.manning.com/carlson/"><img src="/wp-content/images/buy-ebook.png" alt="Buy the paperback"></a></div>
+* <div class="purchase"><a target="_blank" href="http://www.manning.com/carlson/"><img src="./images/buy-ebook.png" alt="Buy the paperback"></a></div>
 
 * [中文翻译版：《Redis实战》(翻译者：黄健宏)](http://redisinaction.com/)
-

@@ -2,7 +2,7 @@
 
 [![Build Status](https://travis-ci.org/northbright/cache-ria-ebook.svg?branch=master)](https://travis-ci.org/northbright/cache-ria-ebook)
 
-cache-ria-ebook is a program written in [Go](http://golang.org) that caches the [Redis in Action ebook](https://redislabs.com/ebook/redis-in-action) hosted on [redislabs.com](https://redislabs.com/).
+cache-ria-ebook is a program which caches the [Redis in Action ebook](https://redislabs.com/ebook/redis-in-action) hosted on [redislabs.com](https://redislabs.com/). It's written in [Golang](http://golang.org).
 
 #### Purpose
 Redis fans from China will have problems to visit [Redis in Action ebook](https://redislabs.com/ebook/redis-in-action)  because accessing Google services is blocked in China.  

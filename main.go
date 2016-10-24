@@ -1,7 +1,6 @@
 package main
 
 import (
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -204,7 +203,7 @@ func downloadPages(t toc, pageTmplStr, outDir string) (err error) {
 					break
 				}
 				if i == retryCount {
-					return errors.New("Failed to get academy content.")
+					return fmt.Errorf("Failed to get academy content.")
 				}
 			}
 		}
@@ -286,7 +285,7 @@ func getContent(contentURL, beginTag, endTag string) (content string, err error)
 	beginIndex := strings.Index(s, beginTag)
 	endIndex := strings.Index(s, endTag)
 	if beginIndex == -1 || endIndex == -1 || beginIndex >= endIndex {
-		return "", errors.New(fmt.Sprintf("Can't find content in contentURL: %v\n", contentURL))
+		return "", fmt.Errorf("Can't find content in contentURL: %v\n", contentURL)
 	}
 
 	s = s[beginIndex:endIndex]

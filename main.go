@@ -54,7 +54,7 @@ var (
 	}
 
 	// CSS URLs need to be downloaded.
-	cssUrls = []string{
+	cssURLs = []string{
 		"https://redislabs.com/wp-content/themes/twentyeleven/style.css",
 		"https://redislabs.com/wp-content/themes/twentyeleven/redislabs.css",
 		"https://redislabs.com/wp-content/themes/twentyeleven/ria.css",
@@ -133,8 +133,8 @@ func (t toc) writeToHTML(f string) (err error) {
 }
 
 // downloadFile() downloads the file by given url and file path.
-func downloadFile(fileUrl string, filePath string) (err error) {
-	res, err := http.Get(fileUrl)
+func downloadFile(fileURL string, filePath string) (err error) {
+	res, err := http.Get(fileURL)
 	if err != nil {
 		return err
 	}
@@ -150,8 +150,8 @@ func downloadFile(fileUrl string, filePath string) (err error) {
 }
 
 // cacheCssFiles() downlaods the CSS style files by given CSS file URLs.
-func cacheCssFiles(cssUrls []string, cssDir string) (err error) {
-	for _, v := range cssUrls {
+func cacheCssFiles(cssURLs []string, cssDir string) (err error) {
+	for _, v := range cssURLs {
 		src := v
 		localFile := path.Join(cssDir, filepath.Base(src))
 		if err = downloadFile(src, localFile); err != nil {
@@ -269,8 +269,8 @@ func downloadPages(t toc, pageTmplStr, outDir string) (err error) {
 }
 
 // getContent() uses regular expression to get the content in HTML body by given content begin and end tags.
-func getContent(contentUrl, beginTag, endTag string) (content string, err error) {
-	res, err := http.Get(contentUrl)
+func getContent(contentURL, beginTag, endTag string) (content string, err error) {
+	res, err := http.Get(contentURL)
 	if err != nil {
 		return "", err
 	}
@@ -286,7 +286,7 @@ func getContent(contentUrl, beginTag, endTag string) (content string, err error)
 	beginIndex := strings.Index(s, beginTag)
 	endIndex := strings.Index(s, endTag)
 	if beginIndex == -1 || endIndex == -1 || beginIndex >= endIndex {
-		return "", errors.New(fmt.Sprintf("Can't find content in contentUrl: %v\n", contentUrl))
+		return "", errors.New(fmt.Sprintf("Can't find content in contentURL: %v\n", contentURL))
 	}
 
 	s = s[beginIndex:endIndex]
@@ -299,13 +299,13 @@ func getRiaJS() (jsText string, err error) {
 }
 
 // getAcademyContent() gets the academy content(each page) of Redis in Action ebook.
-func getAcademyContent(pageUrl string) (academyContent string, err error) {
-	return getContent(pageUrl, academyContentBeginTag, academyContentEndTag)
+func getAcademyContent(pageURL string) (academyContent string, err error) {
+	return getContent(pageURL, academyContentBeginTag, academyContentEndTag)
 }
 
 // getTocText() gets the TOC text of Redis in Action ebook.
-func getTocText(pageUrl string) (tocText string, err error) {
-	return getContent(pageUrl, tocBeginTag, tocEndTag)
+func getTocText(pageURL string) (tocText string, err error) {
+	return getContent(pageURL, tocBeginTag, tocEndTag)
 }
 
 // parseTocText() parses the TOC text and return TOC struct of Redis in Action.
@@ -345,8 +345,8 @@ func parseTocText(tocText string) (t toc, err error) {
 }
 
 // getToc gets the TOC of Redis in Action.
-func getToc(pageUrl string) (t toc, err error) {
-	s, err := getTocText(pageUrl)
+func getToc(pageURL string) (t toc, err error) {
+	s, err := getTocText(pageURL)
 	if err != nil {
 		return nil, err
 	}
@@ -362,7 +362,7 @@ func main() {
 		return
 	}
 
-	if err := cacheCssFiles(cssUrls, dirs["css"]); err != nil {
+	if err := cacheCssFiles(cssURLs, dirs["css"]); err != nil {
 		fmt.Printf("cacheCssFiles() error: %v\n", err)
 	}
 

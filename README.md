@@ -31,6 +31,7 @@ It'll create a `ria-ebook` folder to hold cached pages(html files) and images.
 # cache-ria-ebook
 
 [![Build Status](https://travis-ci.org/northbright/cache-ria-ebook.svg?branch=master)](https://travis-ci.org/northbright/cache-ria-ebook)
+[![Go Report Card](https://goreportcard.com/badge/github.com/northbright/cache-ria-ebook)](https://goreportcard.com/report/github.com/northbright/cache-ria-ebook)
 
 cache-ria-ebook 是一个[Go](http://golang.org) 语言写的程序，用于缓存[redislabs.com](https://redislabs.com/)上的[Redis in Action ebook](https://redislabs.com/ebook/redis-in-action) 。
 

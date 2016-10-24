@@ -149,8 +149,8 @@ func downloadFile(fileURL string, filePath string) (err error) {
 
 }
 
-// cacheCssFiles() downlaods the CSS style files by given CSS file URLs.
-func cacheCssFiles(cssURLs []string, cssDir string) (err error) {
+// cacheCSSFiles() downlaods the CSS style files by given CSS file URLs.
+func cacheCSSFiles(cssURLs []string, cssDir string) (err error) {
 	for _, v := range cssURLs {
 		src := v
 		localFile := path.Join(cssDir, filepath.Base(src))
@@ -362,8 +362,8 @@ func main() {
 		return
 	}
 
-	if err := cacheCssFiles(cssURLs, dirs["css"]); err != nil {
-		fmt.Printf("cacheCssFiles() error: %v\n", err)
+	if err := cacheCSSFiles(cssURLs, dirs["css"]); err != nil {
+		fmt.Printf("cacheCSSFiles() error: %v\n", err)
 	}
 
 	t, err := getToc(ebookHomeURL)

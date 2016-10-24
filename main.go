@@ -39,14 +39,14 @@ const (
 
 var (
 	// TOC level patterns. Default level is 1(top level).
-	levelPatterns map[int]string = map[int]string{
+	levelPatterns = map[int]string{
 		2: `^(Chapter\s\d{1,2}:\s)|((A|B)\.\d{1,2})\s`,
 		3: `^(\d{1,2}\.\d{1,2}\s)|((A|B)\.\d{1,2}\.\d{1,2})\s`,
 		4: `^\d{1,2}\.\d{1,2}\.\d{1,2}\s`,
 	}
 
 	// Predefined Dirs.
-	dirs map[string]string = map[string]string{
+	dirs = map[string]string{
 		"out": "./ria-ebook",
 		"js":  "./ria-ebook/js",
 		"css": "./ria-ebook/css",
@@ -54,7 +54,7 @@ var (
 	}
 
 	// CSS URLs need to be downloaded.
-	cssUrls []string = []string{
+	cssUrls = []string{
 		"https://redislabs.com/wp-content/themes/twentyeleven/style.css",
 		"https://redislabs.com/wp-content/themes/twentyeleven/redislabs.css",
 		"https://redislabs.com/wp-content/themes/twentyeleven/ria.css",

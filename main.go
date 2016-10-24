@@ -316,7 +316,7 @@ func parseTocText(tocText string) (t toc, err error) {
 	t = toc{}
 	for _, m := range matches {
 		if len(m) != 5 {
-			fmt.Println("len(m) != 4, = %v\n", len(m))
+			fmt.Printf("len(m) != 4, = %v\n", len(m))
 		}
 		value, err := strconv.ParseUint(m[1], 10, 64)
 		if err != nil {

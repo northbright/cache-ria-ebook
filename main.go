@@ -386,7 +386,7 @@ func main() {
 	fmt.Printf("\n\n=========================================\nRedis in Action ebook has been cached in %v successfully.\n", dirs["out"])
 }
 
-var pageTemplateStr string = `
+var pageTemplateStr = `
 <!DOCTYPE html>
 <html>
 <head>

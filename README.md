@@ -1,6 +1,7 @@
 # cache-ria-ebook
 
 [![Build Status](https://travis-ci.org/northbright/cache-ria-ebook.svg?branch=master)](https://travis-ci.org/northbright/cache-ria-ebook)
+[![Go Report Card](https://goreportcard.com/badge/github.com/northbright/cache-ria-ebook)](https://goreportcard.com/report/github.com/northbright/cache-ria-ebook)
 
 cache-ria-ebook is a program which caches the [Redis in Action ebook](https://redislabs.com/ebook/redis-in-action) hosted on [redislabs.com](https://redislabs.com/). It's written in [Golang](http://golang.org).
 

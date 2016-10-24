@@ -95,8 +95,8 @@ func (t toc) Less(i, j int) bool {
 	return t[i].value < t[j].value
 }
 
-// toHtmlStr() outputs the TOC to HTML string.
-func (t toc) toHtmlStr() (htmlStr string) {
+// toHTMLStr() outputs the TOC to HTML string.
+func (t toc) toHTMLStr() (htmlStr string) {
 	htmlStr = `<!DOCTYPE html>
 <html>
 <head>
@@ -126,9 +126,9 @@ func (t toc) toHtmlStr() (htmlStr string) {
 	return htmlStr
 }
 
-// writeToHtml() generates the HTML file contains the TOC of Redis in Action.
-func (t toc) writeToHtml(f string) (err error) {
-	s := t.toHtmlStr()
+// writeToHTML() generates the HTML file contains the TOC of Redis in Action.
+func (t toc) writeToHTML(f string) (err error) {
+	s := t.toHTMLStr()
 	return ioutil.WriteFile(f, []byte(s), 0755)
 }
 
@@ -374,8 +374,8 @@ func main() {
 	fmt.Printf("getToc() OK. TOC = %v\n", t)
 
 	tocFile := path.Join(dirs["out"], "_toc.html")
-	if err = t.writeToHtml(tocFile); err != nil {
-		fmt.Printf("writeToHtml(%v): error: %v\n", tocFile, err)
+	if err = t.writeToHTML(tocFile); err != nil {
+		fmt.Printf("writeToHTML(%v): error: %v\n", tocFile, err)
 		return
 	}
 
